@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Inventory Dashboard – Client Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        header {
+            background: #1a237e;
+            color: white;
+            padding: 16px 32px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        main {
+            padding: 24px 16px 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px 22px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        /* --- FORM LAYOUT --- */
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            column-gap: 24px;
+            row-gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .col-2 {
+            /* grid child – no extra flex needed */
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid #cfd8dc;
+            box-sizing: border-box;
+        }
+
+        /* make the Quantity row breathe a bit more */
+        #qtyInput {
+            margin-top: 4px;
+        }
+
+        /* --- BUTTONS --- */
+
+        button {
+            margin-top: 14px;
+            margin-right: 8px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #1a73e8;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        button.secondary {
+            background: #455a64;
+        }
+
+        /* --- TABLE & IFRAME --- */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            font-size: 12px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 4px 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #eeeeee;
+        }
+
+        iframe {
+            width: 100%;
+            height: 480px;
+            border: 0;
+            border-radius: 12px;
+        }
+
+        small {
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Inventory Input & Dashboard</h1>
+    </header>
+
+    <main>
+
+        <!-- Data entry form -->
+        <div class="card">
+            <h2>1. Enter Inventory Movements</h2>
+            <p><small>Fill a few rows and click “Add Row”. When ready, click “Download Excel Template”. This file can be
+                    uploaded to the dashboard backend.</small></p>
+
+            <div class="row">
+                <div class="col-2">
+                    <label>Date</label>
+                    <input type="date" id="dateInput" />
+                </div>
+                <div class="col-2">
+                    <label>Time</label>
+                    <input type="time" id="timeInput" />
+                </div>
+                <div class="col-2">
+                    <label>Zone</label>
+                    <select id="zoneInput">
+                        <option value="A">Zone A</option>
+                        <option value="B">Zone B</option>
+                        <option value="C">Zone C</option>
+                        <option value="D">Zone D</option>
+                        <option value="E">Zone E</option>
+                        <option value="F">Zone F</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label>Brand</label>
+                    <select id="brandInput">
+                        <option value="TATA">TATA</option>
+                        <option value="Jindal">Jindal</option>
+                        <option value="SKF">SKF</option>
+                        <option value="Bajaj">Bajaj</option>
+                        <option value="Havells">Havells</option>
+                        <option value="Nilkamal">Nilkamal</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-2">
+                    <label>Material</label>
+                    <input id="materialInput" placeholder="e.g. Steel Rod 5mm" />
+                </div>
+                <div class="col-2">
+                    <label>Size</label>
+                    <input id="sizeInput" placeholder="e.g. 5mm / Large / 10kg" />
+                </div>
+                <div class="col-2">
+                    <label>Type</label>
+                    <select id="typeInput">
+                        <option value="Raw">Raw</option>
+                        <option value="Component">Component</option>
+                        <option value="Packaging">Packaging</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label>Action</label>
+                    <select id="actionInput">
+                        <option value="IN">IN</option>
+                        <option value="OUT">OUT</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label>Quantity</label>
+                    <input type="number" id="qtyInput" min="1" />
+                </div>
+            </div>
+
+            <button onclick="addRow()">Add Row</button>
+            <button class="secondary" onclick="downloadExcel()">Download Excel Template</button>
+
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Zone</th>
+                        <th>Material</th>
+                        <th>Brand</th>
+                        <th>Size</th>
+                        <th>Type</th>
+                        <th>Action</th>
+                        <th>Qty</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Dashboard embed -->
+        <div class="card">
+            <h2>2. Visual Dashboard</h2>
+            <p><small>
+                    This embedded dashboard is powered by Google Looker Studio. In production, it would be connected to
+                    the Excel/Google Sheet generated above.
+                </small></p>
+            <iframe width="600" height="450" src="https://lookerstudio.google.com/embed/reporting/e1911148-9e63-4c1d-8c79-8e63e527be77/page/54IiF" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+        </div>
+
+        <!-- Summary -->
+        <div class="card">
+            <h2>What this dashboard shows</h2>
+            <ul>
+                <li>Overall IN, OUT and current stock across all zones.</li>
+                <li>Filters to drill down by zone, brand and material.</li>
+                <li>Stock levels by zone and material, and brand share.</li>
+                <li>Movement trends over time and a table of recent transactions.</li>
+                <li>Spike alerts for unusually large OUT movements.</li>
+            </ul>
+        </div>
+
+    </main>
+
+    <script>
+        const rows = [];
+
+        function addRow() {
+            const date = document.getElementById('dateInput').value;
+            const time = document.getElementById('timeInput').value;
+            const zone = document.getElementById('zoneInput').value;
+            const brand = document.getElementById('brandInput').value;
+            const material = document.getElementById('materialInput').value;
+            const size = document.getElementById('sizeInput').value;
+            const type = document.getElementById('typeInput').value;
+            const action = document.getElementById('actionInput').value;
+            const qty = parseInt(document.getElementById('qtyInput').value || '0', 10);
+
+            if (!date || !time || !material || !qty) {
+                alert('Please fill date, time, material and quantity.');
+                return;
+            }
+
+            const row = {
+                Date: date, Time: time, Zone: zone, Material: material,
+                Brand: brand, Size: size, Type: type, Action: action, Qty: qty
+            };
+            rows.push(row);
+            appendRowToTable(row);
+        }
+
+        function appendRowToTable(row) {
+            const tbody = document.querySelector('#dataTable tbody');
+            const tr = document.createElement('tr');
+            Object.values(row).forEach(v => {
+                const td = document.createElement('td');
+                td.textContent = v;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        }
+
+        function downloadExcel() {
+            if (rows.length === 0) {
+                alert('Please add at least one row before downloading.');
+                return;
+            }
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            XLSX.writeFile(wb, 'inventory_input_template.xlsx');
+        }
+    </script>
+
+</body>
+
+</html>
